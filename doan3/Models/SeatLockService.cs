@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using StackExchange.Redis;
 
@@ -7,6 +8,8 @@ namespace doan3.Models
 {
     public class SeatLockService
     {
+        private static bool IsNoSQLEnabled => !string.Equals(ConfigurationManager.AppSettings["EnableNoSQL"], "false", StringComparison.OrdinalIgnoreCase);
+
         private static string GetKey(long lichChieuId, long gheId)
         {
             return $"seatlock:{lichChieuId}:{gheId}";
@@ -17,6 +20,10 @@ namespace doan3.Models
         /// </summary>
         public static List<long> GetLockedSeatIds(long lichChieuId)
         {
+            if (!IsNoSQLEnabled)
+            {
+                return new List<long>();
+            }
             var redis = RedisService.Connection;
             var server = redis.GetServer(redis.GetEndPoints().First());
             var db = RedisService.GetDatabase();
@@ -46,6 +53,8 @@ namespace doan3.Models
         /// </summary>
         public static bool LockSeats(long lichChieuId, List<long> gheIds, long khachHangId, int durationSeconds = 90)
         {
+            if (!IsNoSQLEnabled) return true;
+
             var db = RedisService.GetDatabase();
             var acquiredLocks = new List<string>();
 
@@ -78,6 +87,8 @@ namespace doan3.Models
         /// </summary>
         public static bool VerifySeatsLockedByCustomer(long lichChieuId, List<long> gheIds, long khachHangId)
         {
+            if (!IsNoSQLEnabled) return true;
+
             var db = RedisService.GetDatabase();
             foreach (var gheId in gheIds)
             {
@@ -96,7 +107,7 @@ namespace doan3.Models
         /// </summary>
         public static long GetRemainingLockTime(long lichChieuId, List<long> gheIds)
         {
-            if (gheIds == null || !gheIds.Any()) return 0;
+            if (gheIds == null || !gheIds.Any() || !IsNoSQLEnabled) return 90;
 
             var db = RedisService.GetDatabase();
             long maxTtlSeconds = 0;
@@ -120,7 +131,7 @@ namespace doan3.Models
         /// </summary>
         public static void ReleaseSeatLocks(long lichChieuId, List<long> gheIds)
         {
-            if (gheIds == null || !gheIds.Any()) return;
+            if (gheIds == null || !gheIds.Any() || !IsNoSQLEnabled) return;
 
             var db = RedisService.GetDatabase();
             foreach (var gheId in gheIds)

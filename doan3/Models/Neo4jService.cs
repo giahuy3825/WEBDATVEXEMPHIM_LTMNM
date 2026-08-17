@@ -44,6 +44,10 @@ namespace doan3.Models
         /// </summary>
         public JObject ExecuteCypher(string cypherQuery, Dictionary<string, object> parameters = null)
         {
+            if (string.Equals(ConfigurationManager.AppSettings["EnableNoSQL"], "false", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
             string[] endpoints = !string.IsNullOrEmpty(_cachedEndpoint)
                 ? new[] { _cachedEndpoint }
                 : new[]

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
@@ -324,12 +325,15 @@ namespace doan3.Controllers
             string httpMethod = Request.HttpMethod;
 
             // --- Xác thực OTP ---
-            if (string.IsNullOrWhiteSpace(otpCode))
-                return View("PaymentError", (object)"Vui lòng bấm nút 'LẤY MÃ OTP' và nhập mã OTP 6 số trước khi thanh toán!");
+            if (!string.Equals(ConfigurationManager.AppSettings["EnableNoSQL"], "false", StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrWhiteSpace(otpCode))
+                    return View("PaymentError", (object)"Vui lòng bấm nút 'LẤY MÃ OTP' và nhập mã OTP 6 số trước khi thanh toán!");
 
-            bool isValidOtp = RedisFeaturesService.VerifyOtp(sessionUser.UserName, otpCode.Trim());
-            if (!isValidOtp)
-                return View("PaymentError", (object)"Mã OTP không chính xác hoặc đã hết hạn (120s). Vui lòng bấm 'LẤY MÃ OTP' để nhận mã mới.");
+                bool isValidOtp = RedisFeaturesService.VerifyOtp(sessionUser.UserName, otpCode.Trim());
+                if (!isValidOtp)
+                    return View("PaymentError", (object)"Mã OTP không chính xác hoặc đã hết hạn (120s). Vui lòng bấm 'LẤY MÃ OTP' để nhận mã mới.");
+            }
 
             var danhSachIdGhe = TachChuoiIdGhe(lockedSeatIds);
 
@@ -452,10 +456,12 @@ namespace doan3.Controllers
                     // Neo4j: ghi lượt đặt vé
                     try
                     {
-                        var phimObj = db.Phims.FirstOrDefault(p => p.PhimID == idPhim);
+                        var lc = db.Lich_Chieu.FirstOrDefault(l => l.LichChieuID == lichChieuId);
+                        int targetPhimId = lc != null ? (int)(lc.PhimID ?? 0) : 0;
+                        var phimObj = db.Phims.FirstOrDefault(p => p.PhimID == targetPhimId);
                         string movieTitle = phimObj != null ? phimObj.TenPhim : "";
                         var neo4jService = new Neo4jService();
-                        neo4jService.AddBooking(sessionUser.UserName, (int)idPhim, "BK" + maDonHang, danhSachGheCanMua.Count, tongTienPhaiTra, movieTitle);
+                        neo4jService.AddBooking(sessionUser.UserName, targetPhimId, "BK" + maDonHang, danhSachGheCanMua.Count, tongTienPhaiTra, movieTitle);
                     }
                     catch { }
 

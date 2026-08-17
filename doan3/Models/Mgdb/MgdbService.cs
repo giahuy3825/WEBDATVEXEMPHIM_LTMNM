@@ -38,12 +38,15 @@ namespace doan3.Models.Mgdb
         // 1. CÁC TÍNH NĂNG MONGODB CHO COLLECTION 'cinema_promotions' (TIN TỨC & KHUYẾN MÃI)
         // ===============================================================================
 
+        private static bool IsNoSQLEnabled => !string.Equals(ConfigurationManager.AppSettings["EnableNoSQL"], "false", StringComparison.OrdinalIgnoreCase);
+
         /// <summary>
         /// Lấy danh sách chương trình khuyến mãi (Có lọc theo chuyên mục và tìm kiếm từ khóa)
         /// </summary>
         public static List<MgdbPromotionModel> GetPromotions(string category = "", string search = "")
         {
             var list = new List<MgdbPromotionModel>();
+            if (!IsNoSQLEnabled) return list;
             try
             {
                 var builder = Builders<BsonDocument>.Filter;

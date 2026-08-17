@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using StackExchange.Redis;
 
@@ -26,13 +27,15 @@ namespace doan3.Models
 
     public class RedisFeaturesService
     {
+        private static bool IsNoSQLEnabled => !string.Equals(ConfigurationManager.AppSettings["EnableNoSQL"], "false", StringComparison.OrdinalIgnoreCase);
+
         // =========================================================================
         // TÍNH NĂNG 2: GIỎ HÀNG THONG TIN THANH TOÁN (Hash + TTL 600s / 10 phút)
         // Key dạng: cart:{username}
         // =========================================================================
         public static bool SaveCart(string username, long lichChieuId, string seatIds, decimal totalAmount, int ttlSeconds = 600)
         {
-            if (string.IsNullOrEmpty(username)) return false;
+            if (string.IsNullOrEmpty(username) || !IsNoSQLEnabled) return false;
 
             var db = RedisService.GetDatabase();
             string cartKey = $"cart:{username.ToLower().Trim()}";
@@ -51,7 +54,7 @@ namespace doan3.Models
 
         public static CartItemDTO GetCart(string username)
         {
-            if (string.IsNullOrEmpty(username)) return null;
+            if (string.IsNullOrEmpty(username) || !IsNoSQLEnabled) return null;
 
             var db = RedisService.GetDatabase();
             string cartKey = $"cart:{username.ToLower().Trim()}";
@@ -74,7 +77,7 @@ namespace doan3.Models
 
         public static bool ClearCart(string username)
         {
-            if (string.IsNullOrEmpty(username)) return false;
+            if (string.IsNullOrEmpty(username) || !IsNoSQLEnabled) return false;
             var db = RedisService.GetDatabase();
             string cartKey = $"cart:{username.ToLower().Trim()}";
             return db.KeyDelete(cartKey);
@@ -87,6 +90,7 @@ namespace doan3.Models
         public static string GenerateOtp(string username, int ttlSeconds = 120)
         {
             if (string.IsNullOrEmpty(username)) return null;
+            if (!IsNoSQLEnabled) return "123456";
 
             var db = RedisService.GetDatabase();
             string otpKey = $"otp:checkout:{username.ToLower().Trim()}";
@@ -102,6 +106,7 @@ namespace doan3.Models
         public static bool VerifyOtp(string username, string inputOtp)
         {
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(inputOtp)) return false;
+            if (!IsNoSQLEnabled) return true;
 
             var db = RedisService.GetDatabase();
             string otpKey = $"otp:checkout:{username.ToLower().Trim()}";
@@ -120,7 +125,7 @@ namespace doan3.Models
 
         public static long GetRemainingOtpTtl(string username)
         {
-            if (string.IsNullOrEmpty(username)) return 0;
+            if (string.IsNullOrEmpty(username) || !IsNoSQLEnabled) return 0;
             var db = RedisService.GetDatabase();
             string otpKey = $"otp:checkout:{username.ToLower().Trim()}";
             TimeSpan? ttl = db.KeyTimeToLive(otpKey);
@@ -133,7 +138,7 @@ namespace doan3.Models
         // =========================================================================
         public static bool SaveUserSession(string username, int userId, string fullName, string roleName, int ttlSeconds = 1800)
         {
-            if (string.IsNullOrEmpty(username)) return false;
+            if (string.IsNullOrEmpty(username) || !IsNoSQLEnabled) return false;
 
             var db = RedisService.GetDatabase();
             string sessionKey = $"session:user:{username.ToLower().Trim()}";
@@ -153,7 +158,7 @@ namespace doan3.Models
 
         public static UserSessionDTO GetUserSession(string username)
         {
-            if (string.IsNullOrEmpty(username)) return null;
+            if (string.IsNullOrEmpty(username) || !IsNoSQLEnabled) return null;
 
             var db = RedisService.GetDatabase();
             string sessionKey = $"session:user:{username.ToLower().Trim()}";
@@ -174,7 +179,7 @@ namespace doan3.Models
 
         public static bool RemoveUserSession(string username)
         {
-            if (string.IsNullOrEmpty(username)) return false;
+            if (string.IsNullOrEmpty(username) || !IsNoSQLEnabled) return false;
             var db = RedisService.GetDatabase();
             string sessionKey = $"session:user:{username.ToLower().Trim()}";
             return db.KeyDelete(sessionKey);

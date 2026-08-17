@@ -60,6 +60,10 @@ namespace doan3.Models.Cass
         /// </summary>
         public static ISession GetSession()
         {
+            if (string.Equals(ConfigurationManager.AppSettings["EnableNoSQL"], "false", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
             return LazySession.Value;
         }
     }

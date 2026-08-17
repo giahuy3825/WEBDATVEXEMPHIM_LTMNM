@@ -45,6 +45,7 @@ namespace doan3.Models.Cass
             try
             {
                 var session = CassandraService.GetSession();
+                if (session == null) return;
 
                 const string cql = @"
                     INSERT INTO lich_su_ghe
@@ -109,6 +110,7 @@ namespace doan3.Models.Cass
             try
             {
                 var session = CassandraService.GetSession();
+                if (session == null) return;
 
                 const string cql = @"
                     INSERT INTO lich_su_dat_ve
@@ -166,6 +168,7 @@ namespace doan3.Models.Cass
             try
             {
                 var session = CassandraService.GetSession();
+                if (session == null) return;
                 var gioVn = GioVietNamHienTai();
                 // Bucket theo ngày VN để tránh hot partition
                 string ngay = gioVn.ToString("yyyy-MM-dd");
