@@ -414,6 +414,12 @@ namespace doan3.Models
             };
 
             var checkRes = ExecuteCypher(checkQuery, checkParams);
+            if (checkRes == null || checkRes["results"] == null)
+            {
+                // Neo4j chưa bật hoặc không thể kết nối -> thoát an toàn, không gây crash ứng dụng
+                return false;
+            }
+
             int count = 0;
             try
             {

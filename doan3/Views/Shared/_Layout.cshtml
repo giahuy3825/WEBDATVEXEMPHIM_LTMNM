@@ -40,6 +40,8 @@
 
         .navbar-top {
             padding: 0.8rem 0;
+            position: relative;
+            z-index: 2000; /* Cao hơn sub-navbar để popup menu không bị che */
         }
 
             .navbar-top .content-wrapper,
@@ -111,6 +113,8 @@
             border: 1px solid #ffeb00;
             border-radius: 10px;
             margin-top: 10px;
+            z-index: 99999 !important; /* Đảm bảo luôn nổi trên mọi thành phần */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
         }
 
         .dropdown-item {
@@ -129,26 +133,85 @@
             background-color: #060922;
             border-top: 1px solid #15183c;
             border-bottom: 1px solid #15183c;
-            padding: 0.5rem 0;
+            padding: 0.4rem 0;
+            overflow: visible !important;
+            position: relative;
+            z-index: 1000; /* Thấp hơn navbar-top để không đè menu user */
+        }
+
+        .sub-navbar .content-wrapper {
+            max-width: 1400px;
+            overflow: visible !important;
+        }
+
+        .sub-nav-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 6px;
+            flex-wrap: nowrap;
+        }
+
+        .sub-nav-left, .sub-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .sub-nav-item {
+            white-space: nowrap;
+            flex-shrink: 0;
+            position: relative;
         }
 
         .sub-nav-item a {
             color: #fff !important;
             font-weight: 600;
-            padding: 0.5rem 1rem;
+            padding: 0.45rem 0.65rem;
             text-decoration: none;
             text-transform: uppercase;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            white-space: nowrap !important;
+            display: inline-flex;
+            align-items: center;
+            border-radius: 4px;
+            transition: all 0.2s ease-in-out;
+            letter-spacing: 0.2px;
+            cursor: pointer;
         }
 
             .sub-nav-item a:hover {
                 color: #f9e000 !important;
+                background-color: rgba(255, 235, 0, 0.08);
             }
 
-        /* Hover Dropdown cho Chọn rạp & Thể loại */
-        .rap-hover:hover .dropdown-menu,
-        .theloai-hover:hover .dropdown-menu {
-            display: block;
+            .sub-nav-item a i {
+                margin-right: 5px;
+                font-size: 0.85rem;
+            }
+
+        /* Hover & Click Dropdown cho Chọn rạp & Thể loại */
+        .rap-hover, .theloai-hover {
+            position: relative;
+        }
+
+        .rap-hover:hover .rap-menu,
+        .rap-hover.show .rap-menu,
+        .theloai-hover:hover .theloai-menu,
+        .theloai-hover.show .theloai-menu {
+            display: grid !important;
+            position: absolute !important;
+            top: 100% !important;
+            left: 0 !important;
+            z-index: 999999 !important;
+            background-color: #121536 !important;
+            border: 1px solid #232756 !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
+            min-width: 680px;
+            border-radius: 8px;
+            padding: 15px 25px;
         }
 
         /* ================= MAIN ================= */
@@ -273,82 +336,85 @@
 
             <nav class="sub-navbar">
                 <div class="content-wrapper">
-                    <div class="d-flex align-items-center w-100">
+                    <div class="sub-nav-wrapper">
+                        <div class="sub-nav-left">
+                            @if (role == "Customer")
+                            {
+                                <div class="sub-nav-item dropdown rap-hover">
+                                    <a href="#" class="dropdown-toggle"><i class="fas fa-map-marker-alt mr-1"></i> Chọn rạp</a>
+                                    @Html.Action("TenRap_PartialView", "TenRap")
+                                </div>
+                                <div class="sub-nav-item dropdown theloai-hover">
+                                    <a href="#" class="dropdown-toggle">Thể loại</a>
+                                    @Html.Action("TheLoai_PartialView", "TheLoai")
+                                </div>
+                            }
 
-                        @if (role == "Customer")
-                        {
-                            <div class="sub-nav-item dropdown rap-hover">
-                                <a href="#" class="dropdown-toggle"><i class="fas fa-map-marker-alt mr-1"></i> Chọn rạp</a>
-                                @Html.Action("TenRap_PartialView", "TenRap")
-                            </div>
-                            <div class="sub-nav-item dropdown theloai-hover">
-                                <a href="#" class="dropdown-toggle">Thể loại</a>
-                                @Html.Action("TheLoai_PartialView", "TheLoai")
-                            </div>
-                        }
+                            @if (role == "Staff")
+                            {
+                                <div class="sub-nav-item dropdown rap-hover">
+                                    <a href="#" class="dropdown-toggle text-white"><i class="fas fa-map-marker-alt"></i> Chọn rạp</a>
+                                    @Html.Action("TenRap_PartialView", "TenRap")
+                                </div>
+                                <div class="sub-nav-item dropdown theloai-hover">
+                                    <a href="#" class="dropdown-toggle text-white">Thể loại</a>
+                                    @Html.Action("TheLoai_PartialView", "TheLoai")
+                                </div>
+                                <div class="sub-nav-item">
+                                    <a href="@Url.Action("Index", "HoTroKhachHang")" style="color:#ffeb00 !important">
+                                        <i class="fas fa-headset mr-1"></i> Hỗ Trợ Khách Hàng
+                                    </a>
+                                </div>
+                            }
 
-                        @if (role == "Staff")
-                        {
-                            <div class="sub-nav-item dropdown rap-hover">
-                                <a href="#" class="dropdown-toggle text-white"><i class="fas fa-map-marker-alt"></i> Chọn rạp</a>
-                                @Html.Action("TenRap_PartialView", "TenRap")
-                            </div>
-                            <div class="sub-nav-item dropdown theloai-hover">
-                                <a href="#" class="dropdown-toggle text-white">Thể loại</a>
-                                @Html.Action("TheLoai_PartialView", "TheLoai")
-                            </div>
+                            @if (role == "Admin")
+                            {
+                                <div class="sub-nav-item dropdown rap-hover">
+                                    <a href="#" class="dropdown-toggle"><i class="fas fa-map-marker-alt mr-1"></i> Chọn rạp</a>
+                                    @Html.Action("TenRap_PartialView", "TenRap")
+                                </div>
+                                <div class="sub-nav-item dropdown theloai-hover">
+                                    <a href="#" class="dropdown-toggle">Thể loại</a>
+                                    @Html.Action("TheLoai_PartialView", "TheLoai")
+                                </div>
+                                <div class="sub-nav-item">
+                                    <a href="@Url.Action("QuanLyAdmin", "ChucNang_Admin")" style="color:#ffeb00 !important">
+                                        <i class="fas fa-user-shield"></i> Cài Đặt Admin
+                                    </a>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="sub-nav-right">
                             <div class="sub-nav-item">
-                                <a href="@Url.Action("Index", "HoTroKhachHang")" style="color:#ffeb00 !important">
-                                    <i class="fas fa-headset mr-1"></i> Hỗ Trợ Khách Hàng
+                                <a href="@Url.Action("Index", "Neo4j")" style="color: #ffeb00 !important; font-weight: 700;">
+                                    <i class="fas fa-magic mr-1"></i> Gợi Ý Phim (Neo4j)
                                 </a>
                             </div>
-                        }
 
-                        @if (role == "Admin")
-                        {
-                            <div class="sub-nav-item dropdown rap-hover">
-                                <a href="#" class="dropdown-toggle"><i class="fas fa-map-marker-alt mr-1"></i> Chọn rạp</a>
-                                @Html.Action("TenRap_PartialView", "TenRap")
-                            </div>
-                            <div class="sub-nav-item dropdown theloai-hover">
-                                <a href="#" class="dropdown-toggle">Thể loại</a>
-                                @Html.Action("TheLoai_PartialView", "TheLoai")
-                            </div>
                             <div class="sub-nav-item">
-                                <a href="@Url.Action("QuanLyAdmin", "ChucNang_Admin")" style="color:#ffeb00 !important">
-                                    <i class="fas fa-user-shield"></i> Cài Đặt Admin
+                                <a href="@Url.Action("Index", "MgdbPromotion")" style="color: #00e676 !important; font-weight: 700;">
+                                    <i class="fas fa-gift mr-1"></i> Voucher & Khuyến Mãi
                                 </a>
                             </div>
-                        }
 
-                        <div class="sub-nav-item ml-auto">
-                            <a href="@Url.Action("Index", "Neo4j")" style="color: #ffeb00 !important; font-weight: 700;">
-                                <i class="fas fa-magic mr-1"></i> Gợi Ý Phim (Neo4j)
-                            </a>
-                        </div>
+                            <div class="sub-nav-item">
+                                <a href="@Url.Action("Index", "MgdbCustomerFeedback")" style="color: #00e676 !important; font-weight: 700;">
+                                    <i class="fas fa-headset mr-1"></i> Hỗ Trợ & Khiếu Nại
+                                </a>
+                            </div>
 
-                        <div class="sub-nav-item">
-                            <a href="@Url.Action("Index", "MgdbPromotion")" style="color: #00e676 !important; font-weight: 700;">
-                                <i class="fas fa-gift mr-1"></i>  Voucher & Khuyến Mãi
-                            </a>
-                        </div>
+                            <div class="sub-nav-item">
+                                <a href="@Url.Action("GioiThieu", "Home")" style="color: #ffeb00 !important; font-weight: 700;">
+                                    <i class="fas fa-info-circle mr-1"></i> Giới thiệu
+                                </a>
+                            </div>
 
-                        <div class="sub-nav-item">
-                            <a href="@Url.Action("Index", "MgdbCustomerFeedback")" style="color: #00e676 !important; font-weight: 700;">
-                                <i class="fas fa-headset mr-1"></i>  Hỗ Trợ & Khiếu Nại
-                            </a>
-                        </div>
-
-                        <div class="sub-nav-item">
-                            <a href="@Url.Action("GioiThieu", "Home")" style="color: #ffeb00 !important; font-weight: 700;">
-                                <i class="fas fa-info-circle mr-1"></i> Giới thiệu
-                            </a>
-                        </div>
-
-                        <div class="sub-nav-item">
-                            <a href="@Url.Action("ChinhSachTichDiem", "Home")" style="color: #f9e000 !important; font-weight: 700;">
-                                <i class="fa fa-star mr-1"></i> CHÍNH SÁCH & ƯU ĐÃI
-                            </a>
+                            <div class="sub-nav-item">
+                                <a href="@Url.Action("ChinhSachTichDiem", "Home")" style="color: #f9e000 !important; font-weight: 700;">
+                                    <i class="fa fa-star mr-1"></i> Chính Sách & Ưu Đãi
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -385,6 +451,26 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Cho phép người dùng CLICK vào nút Chọn rạp / Thể loại để mở menu
+            $('.rap-hover > a, .theloai-hover > a').on('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var parent = $(this).closest('.sub-nav-item');
+                $('.rap-hover, .theloai-hover').not(parent).removeClass('show');
+                parent.toggleClass('show');
+            });
+
+            // Đóng menu khi click ra ngoài
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('.rap-hover, .theloai-hover').length) {
+                    $('.rap-hover, .theloai-hover').removeClass('show');
+                }
+            });
+        });
+    </script>
 
     @RenderSection("scripts", required: false)
 </body>
